@@ -1,9 +1,10 @@
 class TreeBuilder:
+
     def build(self, files):
         tree = {}
 
-        for item in files:
-            path = item["path"].split("/")
+        for file in files:
+            path = file.split("/")
             current = tree
 
             for part in path[:-1]:
