@@ -1,0 +1,24 @@
+:root {
+    --bg: #05070a;
+
+    --surface: #0b0f14;
+    --surface-raised: #11161d;
+    --surface-hover: #161c24;
+
+    --border: #242b35;
+    --border-hover: #303946;
+
+    --text: #e6edf3;
+    --text-secondary: #8b949e;
+    --text-muted: #6e7681;
+
+    --blue: #2f81f7;
+    --blue-hover: #388bfd;
+    --blue-dark: #172b4d;
+
+    --success: #3fb950;
+    --error: #f85149;
+
+    --radius: 8px;
+    --max-width: 1180px;
+}
