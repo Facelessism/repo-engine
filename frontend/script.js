@@ -50,7 +50,7 @@ async function analyzeRepository() {
 function displayResults(data) {
   results.classList.remove("hidden");
   repoName.textContent = data.name || "Repository";
-  treeOutput.textContent = formatTree(data.tree, data.name);
+  renderTree(data.tree, data.name);
   language.textContent = data.language || "—";
   framework.textContent = data.framework || "—";
 
@@ -62,26 +62,55 @@ function displayResults(data) {
   results.scrollIntoView({ behavior: "smooth" });
 }
 
-function formatTree(tree, name) {
-  const lines = [`${name || "repository"}/`];
-  renderNode(tree, "", lines);
-  return lines.join("\n");
+function renderTree(tree, name) {
+  treeOutput.innerHTML = "";
+
+  const root = document.createElement("div");
+  root.className = "tree-root";
+  root.textContent = `${name || "repository"}/`;
+
+  treeOutput.appendChild(root);
+  renderNode(tree, treeOutput);
 }
 
-function renderNode(node, prefix, lines) {
+function renderNode(node, parent) {
   if (!node) return;
 
-  Object.entries(node).forEach(([name, value], index, entries) => {
-    const last = index === entries.length - 1;
-    const branch = last ? "└── " : "├── ";
-    const nextPrefix = prefix + (last ? "    " : "│   ");
+  Object.entries(node).forEach(([name, value]) => {
+    const isFile = Object.keys(value).length === 0;
 
-    if (Object.keys(value).length === 0) {
-      lines.push(`${prefix}${branch}${name}`);
-    } else {
-      lines.push(`${prefix}${branch}${name}/`);
-      renderNode(value, nextPrefix, lines);
+    const item = document.createElement("div");
+    item.className = isFile ? "tree-file" : "tree-directory";
+
+    const row = document.createElement("div");
+    row.className = "tree-row";
+
+    const icon = document.createElement("span");
+    icon.className = "tree-icon";
+    icon.textContent = isFile ? "·" : "▸";
+
+    const label = document.createElement("span");
+    label.textContent = name;
+
+    row.appendChild(icon);
+    row.appendChild(label);
+    item.appendChild(row);
+
+    if (!isFile) {
+      const children = document.createElement("div");
+      children.className = "tree-children";
+
+      renderNode(value, children);
+
+      row.addEventListener("click", () => {
+        const collapsed = children.classList.toggle("collapsed");
+        icon.textContent = collapsed ? "▸" : "▾";
+      });
+
+      item.appendChild(children);
     }
+
+    parent.appendChild(item);
   });
 }
 
@@ -131,5 +160,7 @@ function reset() {
   input.value = "";
   results.classList.add("hidden");
   status.textContent = "";
+  treeOutput.innerHTML = "";
   input.focus();
 }
+
