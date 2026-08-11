@@ -1,7 +1,6 @@
 import sys
 
-from engine.github import GitHubClient
-from engine.tree import TreeBuilder
+from engine.repository import RepositoryEngine
 from engine.formatter import TreeFormatter
 
 
@@ -11,15 +10,12 @@ def main():
         print("python main.py <github-repository-url>")
         return
 
-    url = sys.argv[1]
+    result = RepositoryEngine().generate(sys.argv[1])
 
-    github = GitHubClient()
-
-    repo_name, files = github.fetch_tree(url)
-
-    tree = TreeBuilder().build(files)
-
-    TreeFormatter().format(repo_name, tree)
+    TreeFormatter().format(
+        result["name"],
+        result["tree"],
+    )
 
 
 if __name__ == "__main__":

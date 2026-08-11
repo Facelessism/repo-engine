@@ -1,7 +1,7 @@
 [project]
 name = "repo-engine"
-version = "0.1.0"
-description = "Repository Structure Engine"
+version = "0.2.0"
+description = "A repository structure and analysis engine"
 requires-python = ">=3.10"
 
 dependencies = [
