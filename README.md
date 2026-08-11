@@ -81,6 +81,78 @@ or
 pip install .
 ```
 
+## Local Development
+
+Repo Engine currently runs as two separate local services:
+
+```text
+Frontend → http://127.0.0.1:3000
+API      → http://127.0.0.1:8000
+```
+Both services must be running to use the web interface.
+
+### 1. Start the API
+
+From the project root:
+
+```bash
+python -m api.server
+```
+
+The API will run at:
+
+```text
+http://127.0.0.1:8000
+```
+
+Verify it:
+
+```bash
+curl http://127.0.0.1:8000/
+```
+
+Expected response:
+
+```json
+{
+  "message": "Repo Engine API"
+}
+```
+
+### 2. Start the Frontend
+
+Open another terminal and enter the frontend directory:
+
+```bash
+cd frontend
+```
+
+Start the local web server:
+
+```bash
+python -m http.server 3000
+```
+
+Then open:
+
+```text
+http://127.0.0.1:3000
+```
+in your browser. If port `3000` is already in use, use another port.
+
+### 3. Test the API
+
+You can test repository analysis directly with:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/tree \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://github.com/Facelessism/repo-engine"}'
+```
+
+Once both servers are running, enter a public GitHub repository URL in the Repo Engine web interface and click **Analyze Repository**.
+
+
 ## Usage
 
 Run the application by providing a GitHub repository URL.
@@ -97,7 +169,7 @@ Input
 https://github.com/vercel/next.js
 ```
 
-Output
+Expected Output
 
 ```text
 next.js/
@@ -109,6 +181,7 @@ next.js/
 ├── README.md
 └── turbo.json
 ```
+
 
 ## How it Works
 
