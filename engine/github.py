@@ -1,3 +1,5 @@
+import base64
+import os
 from urllib.parse import urlparse
 
 import requests
@@ -5,6 +7,34 @@ import requests
 
 class GitHubClient:
     BASE_URL = "https://api.github.com"
+
+    CONTENT_FILES = {
+        "package.json",
+        "requirements.txt",
+        "pyproject.toml",
+        "Pipfile",
+        "Pipfile.lock",
+        "composer.json",
+        "Cargo.toml",
+        "go.mod",
+        "pom.xml",
+        "build.gradle",
+        "build.gradle.kts",
+        "Gemfile",
+    }
+
+    def __init__(self):
+        self.session = requests.Session()
+        self.session.headers.update({
+            "Accept": "application/vnd.github+json"
+        })
+
+        token = os.getenv("GITHUB_TOKEN")
+
+        if token:
+            self.session.headers.update({
+                "Authorization": f"Bearer {token}"
+            })
 
     def parse_url(self, url: str):
         parsed = urlparse(url)
@@ -21,7 +51,7 @@ class GitHubClient:
     def fetch_repository(self, url: str):
         owner, repo = self.parse_url(url)
 
-        response = requests.get(
+        response = self.session.get(
             f"{self.BASE_URL}/repos/{owner}/{repo}"
         )
         response.raise_for_status()
@@ -34,7 +64,7 @@ class GitHubClient:
         repository = self.fetch_repository(url)
         default_branch = repository["default_branch"]
 
-        response = requests.get(
+        response = self.session.get(
             f"{self.BASE_URL}/repos/{owner}/{repo}/git/trees/{default_branch}",
             params={"recursive": "1"},
         )
@@ -54,9 +84,14 @@ class GitHubClient:
         owner, repo = self.parse_url(url)
         contents = {}
 
-        for file in files:
+        relevant_files = [
+            file for file in files
+            if file.rsplit("/", 1)[-1] in self.CONTENT_FILES
+        ]
+
+        for file in relevant_files:
             try:
-                response = requests.get(
+                response = self.session.get(
                     f"{self.BASE_URL}/repos/{owner}/{repo}/contents/{file}"
                 )
 
@@ -67,8 +102,6 @@ class GitHubClient:
 
                 if data.get("encoding") != "base64":
                     continue
-
-                import base64
 
                 contents[file] = base64.b64decode(
                     data["content"]
