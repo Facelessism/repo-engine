@@ -20,14 +20,9 @@ class RepositoryEngine:
 
         analysis = {
             "language": detect_language(files),
-            "package_manager": detect_package_manager(files),
-            "structure": detect_structure(files),
+            "package_manager": detect_package_manager(files, contents),
             "framework": detect_framework(files, contents),
+            "structure": detect_structure(files),
         }
 
-        return self.formatter.format(
-            name,
-            tree,
-            analysis,
-        )
-
+        return self.formatter.format(name, tree, analysis)

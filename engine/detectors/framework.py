@@ -1,3 +1,7 @@
+import json
+import re
+
+
 FRAMEWORKS = {
     "react": "React",
     "next": "Next.js",
@@ -15,24 +19,48 @@ FRAMEWORKS = {
 
 
 def detect_framework(files, contents):
-    relevant = []
-
     for file, content in contents.items():
-        name = file.split("/")[-1]
+        name = file.rsplit("/", 1)[-1]
 
-        if name in {
-            "package.json",
-            "requirements.txt",
-            "pyproject.toml",
-            "Pipfile",
-            "composer.json",
-        }:
-            relevant.append(content.lower())
+        if name == "package.json":
+            try:
+                data = json.loads(content)
+            except json.JSONDecodeError:
+                continue
 
-    text = "\n".join(relevant)
+            dependencies = {}
+            dependencies.update(data.get("dependencies", {}))
+            dependencies.update(data.get("devDependencies", {}))
 
-    for package, framework in FRAMEWORKS.items():
-        if package in text:
-            return framework
+            for package, framework in FRAMEWORKS.items():
+                if any(
+                    package == dependency.lower()
+                    or dependency.lower().startswith(f"{package}/")
+                    for dependency in dependencies
+                ):
+                    return framework
+
+        elif name in {"requirements.txt", "Pipfile", "pyproject.toml"}:
+            text = content.lower()
+
+            for package, framework in FRAMEWORKS.items():
+                pattern = rf"(?<![\w-]){re.escape(package)}(?![\w-])"
+
+                if re.search(pattern, text):
+                    return framework
+
+        elif name == "composer.json":
+            try:
+                data = json.loads(content)
+            except json.JSONDecodeError:
+                continue
+
+            dependencies = {}
+            dependencies.update(data.get("require", {}))
+            dependencies.update(data.get("require-dev", {}))
+
+            for package, framework in FRAMEWORKS.items():
+                if any(package in dependency.lower() for dependency in dependencies):
+                    return framework
 
     return None

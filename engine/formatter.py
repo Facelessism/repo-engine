@@ -26,4 +26,3 @@ class TreeFormatter:
             if children:
                 extension = "    " if last else "│   "
                 self._walk(children, lines, prefix + extension)
-

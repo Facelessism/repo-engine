@@ -13,15 +13,41 @@ PACKAGE_MANAGERS = {
     "Gemfile.lock": "Bundler",
 }
 
+PYPROJECT_TOOLS = {
+    "[tool.poetry]": "Poetry",
+    "[tool.uv]": "uv",
+    "[tool.pdm]": "PDM",
+    "[tool.hatch]": "Hatch",
+}
 
-def detect_package_manager(files):
-    for file in files:
-        name = file.rsplit("/", 1)[-1]
 
-        if name in PACKAGE_MANAGERS:
-            return PACKAGE_MANAGERS[name]
+def detect_package_manager(files, contents):
+    names = {
+        file.rsplit("/", 1)[-1]
+        for file in files
+    }
 
-    if any(file.endswith("package.json") for file in files):
+    for filename, manager in PACKAGE_MANAGERS.items():
+        if filename in names:
+            return manager
+
+    if "package.json" in names:
         return "npm"
+
+    pyproject = next(
+        (
+            content.lower()
+            for file, content in contents.items()
+            if file.rsplit("/", 1)[-1] == "pyproject.toml"
+        ),
+        "",
+    )
+
+    for tool, manager in PYPROJECT_TOOLS.items():
+        if tool in pyproject:
+            return manager
+
+    if "pyproject.toml" in names or "requirements.txt" in names:
+        return "pip"
 
     return None
